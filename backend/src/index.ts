@@ -5,6 +5,7 @@ import uploadRouter from "./routes/upload";
 import processRouter from "./routes/process";
 import exportRouter from "./routes/export";
 import webhooksRouter from "./routes/webhooks";
+import downloadRouter from "./routes/download";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -22,6 +23,7 @@ app.use("/upload", uploadRouter);
 app.use("/process", processRouter);
 app.use("/export", exportRouter);
 app.use("/webhooks", webhooksRouter);
+app.use("/download", downloadRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);

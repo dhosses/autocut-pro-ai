@@ -14,7 +14,6 @@ function createWindow() {
     resizable: false,
     frame: false,
     transparent: false,
-    titleBarStyle: "hidden",
     backgroundColor: "#111111",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -93,7 +92,11 @@ ipcMain.handle("install", async (event) => {
 
     for (const v of [12, 11, 10, 9]) {
       try {
-        execSync(`defaults write com.adobe.CSXS.${v} PlayerDebugMode 1`, { stdio: "ignore" });
+        if (process.platform === "win32") {
+          execSync(`reg add "HKCU\\Software\\Adobe\\CSXS.${v}" /v PlayerDebugMode /t REG_SZ /d 1 /f`, { stdio: "ignore" });
+        } else {
+          execSync(`defaults write com.adobe.CSXS.${v} PlayerDebugMode 1`, { stdio: "ignore" });
+        }
       } catch (_) {}
     }
     send(3, "done", "Premiere Pro configured");
@@ -101,7 +104,9 @@ ipcMain.handle("install", async (event) => {
     // ── Step 4: Install extension ───────────────────────────────────────────
     send(4, "active", "Installing extension…");
 
-    const extDir = path.join(os.homedir(), "Library/Application Support/Adobe/CEP/extensions");
+    const extDir = process.platform === "win32"
+      ? path.join(process.env.APPDATA, "Adobe/CEP/extensions")
+      : path.join(os.homedir(), "Library/Application Support/Adobe/CEP/extensions");
     fs.mkdirSync(extDir, { recursive: true });
 
     const dest = path.join(extDir, "com.autocutproai.panel");

@@ -32,6 +32,7 @@ export default function CheckoutButton() {
       const url = new URL(LEMONSQUEEZY_CHECKOUT_URL);
       url.searchParams.set("checkout[custom][user_id]", userId);
       url.searchParams.set("checkout[email]", email);
+      url.searchParams.set("checkout[redirect_url]", `${window.location.origin}/download?subscribed=1`);
 
       window.location.href = url.toString();
     } finally {

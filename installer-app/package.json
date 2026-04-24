@@ -6,7 +6,9 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --mac --publish never"
+    "build": "electron-builder --mac --publish never",
+    "build:mac": "electron-builder --mac --publish never",
+    "build:win": "electron-builder --win --publish never"
   },
   "dependencies": {},
   "devDependencies": {
@@ -43,6 +45,15 @@
     "dmg": {
       "title": "AutoCut Pro AI Installer",
       "window": { "width": 540, "height": 380 }
+    },
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }]
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": false,
+      "installerHeaderIcon": "assets/icon.ico"
     }
   }
 }
