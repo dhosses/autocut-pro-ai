@@ -23,10 +23,18 @@ const Api = (() => {
     return res.json();
   }
 
-  async function uploadFile(file, projectId, onProgress) {
+  async function uploadFile(fileOrPath, projectId, onProgress) {
     const token = await Auth.getToken();
     const form = new FormData();
-    form.append("file", file);
+    // CEP passes a file path string; convert to Blob via XHR
+    let file = fileOrPath;
+    if (typeof fileOrPath === "string") {
+      const bytes = await _readLocalFile(fileOrPath);
+      const name = fileOrPath.split("/").pop() || fileOrPath.split("\\").pop();
+      file = new Blob([bytes], { type: "video/mp4" });
+      file.name = name;
+    }
+    form.append("file", file, file.name || "clip");
     form.append("projectId", projectId);
 
     return new Promise((resolve, reject) => {
@@ -88,6 +96,18 @@ const Api = (() => {
     });
     if (!res.ok) throw new Error("Download not ready");
     return res.json();
+  }
+
+  // Read a local file path into an ArrayBuffer (CEP environment)
+  function _readLocalFile(filePath) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", `file://${filePath}`, true);
+      xhr.responseType = "arraybuffer";
+      xhr.onload = () => resolve(xhr.response);
+      xhr.onerror = () => reject(new Error(`Cannot read file: ${filePath}`));
+      xhr.send();
+    });
   }
 
   return { createProject, uploadFile, processClips, pollJob, getSignedDownloadUrl };

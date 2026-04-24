@@ -177,14 +177,14 @@ const App = (() => {
           label.textContent += " (file not accessible)";
           continue;
         }
-        const { file } = fileEntries[0];
+        const { path } = fileEntries[0];
 
         if (!_projectId) {
           const proj = await Api.createProject(`Premiere: ${_sequence.name}`);
           _projectId = proj.id;
         }
 
-        const result = await Api.uploadFile(file, _projectId, (pct) => {
+        const result = await Api.uploadFile(path, _projectId, (pct) => {
           fill.style.width = `${Math.round(pct * 100)}%`;
         });
 
@@ -321,14 +321,41 @@ const App = (() => {
 
   async function _applyTracking(job) {
     const { url } = await Api.getSignedDownloadUrl(job.jobId);
-    // Download the tracked video and import it into the project bin
-    const { localFileSystem } = require("uxp").storage;
-    const tmp = await localFileSystem.getTemporaryFolder();
-    const file = await tmp.createFile("tracked.mp4", { overwrite: true });
+    // Download to OS temp folder then import into project bin via ExtendScript
     const res = await fetch(url);
     const buffer = await res.arrayBuffer();
-    await file.write(buffer);
-    await Premiere.importProcessedFile(file.nativePath, "AutoCut Exports");
+    const blob = new Blob([buffer], { type: "video/mp4" });
+    const tmpUrl = URL.createObjectURL(blob);
+    // ExtendScript can't use blob URLs — download to temp path via XHR first
+    const cs = new CSInterface();
+    const tmpPath = await new Promise((resolve) => {
+      cs.evalScript("Folder.temp.fsName", (r) => resolve(r + "/autocut_tracked.mp4"));
+    });
+    await _saveBlobToPath(blob, tmpPath);
+    await Premiere.importProcessedFile(tmpPath, "AutoCut Exports");
+  }
+
+  function _saveBlobToPath(blob, path) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const cs = new CSInterface();
+        const bytes = Array.from(new Uint8Array(reader.result));
+        const script = `
+          (function() {
+            var f = new File(${JSON.stringify(path)});
+            f.encoding = "binary";
+            f.open("w");
+            f.write(String.fromCharCode.apply(null, ${JSON.stringify(bytes)}));
+            f.close();
+            return "OK";
+          })()
+        `;
+        cs.evalScript(script, () => resolve());
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(blob);
+    });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -352,7 +379,8 @@ const App = (() => {
     document.getElementById("signOut").addEventListener("click", _handleSignOut);
     document.getElementById("refreshSeq").addEventListener("click", _refreshSequence);
     document.getElementById("openDashboard").addEventListener("click", () => {
-      require("uxp").shell.openExternal("http://localhost:3000/dashboard");
+      const cs = new CSInterface();
+      cs.openURLInDefaultBrowser("http://localhost:3000/dashboard");
     });
 
     document.getElementById("actionSilence").addEventListener("click", () => _runProcess("silence-trim"));

@@ -1,76 +1,85 @@
-# Loading the Plugin into Adobe Premiere Pro
+# Loading AutoCut Pro AI into Adobe Premiere Pro
 
-## Prerequisites
-- Adobe Premiere Pro 2022 (v22.0) or later
-- Adobe UXP Developer Tool (free, from Adobe)
+No UXP Developer Tool needed. Three steps.
 
 ---
 
-## Step 1 — Install Adobe UXP Developer Tool
+## Step 1 — Download CSInterface.js (one-time)
 
-1. Open the **Creative Cloud desktop app**
-2. Go to **Apps** → search "UXP Developer Tool"
-3. Install it (it's free)
+Download this file and save it as `premiere-plugin/lib/CSInterface.js`:
 
----
+https://raw.githubusercontent.com/Adobe-CEP/CEP-Resources/master/CEP_11.x/CSInterface.js
 
-## Step 2 — Load the plugin (development mode)
-
-1. Open **Adobe UXP Developer Tool**
-2. Click **Add Plugin**
-3. Browse to: `autocut-pro-ai/premiere-plugin/manifest.json`
-4. Click **Load**
-5. The plugin will appear in the list — click **Load** again to activate it
+Or run in terminal:
+```bash
+curl -o "/Users/dan/PR Project SaaS/premiere-plugin/lib/CSInterface.js" \
+  "https://raw.githubusercontent.com/Adobe-CEP/CEP-Resources/master/CEP_11.x/CSInterface.js"
+```
 
 ---
 
-## Step 3 — Open the panel in Premiere Pro
+## Step 2 — Enable debug mode + install (run once in terminal)
 
-1. Open **Adobe Premiere Pro**
+```bash
+# Enable CEP debug mode so unsigned extensions load
+defaults write com.adobe.CSXS.11 PlayerDebugMode 1
+defaults write com.adobe.CSXS.10 PlayerDebugMode 1
+defaults write com.adobe.CSXS.9  PlayerDebugMode 1
+
+# Create the extensions folder if it doesn't exist
+mkdir -p ~/Library/Application\ Support/Adobe/CEP/extensions
+
+# Symlink the plugin (changes to the folder apply instantly)
+ln -sf "/Users/dan/PR Project SaaS/premiere-plugin" \
+  ~/Library/Application\ Support/Adobe/CEP/extensions/com.autocutproai.panel
+```
+
+---
+
+## Step 3 — Open in Premiere Pro
+
+1. **Restart Premiere Pro** (or open it fresh)
 2. Go to **Window → Extensions → AutoCut Pro AI**
-3. The panel will appear — sign in with your AutoCut Pro AI account
+3. The panel opens — sign in and you're ready
 
 ---
 
-## Step 4 — Using the plugin
+## Using the panel
 
 1. Open a sequence in Premiere Pro
-2. Click **Refresh sequence** in the panel
-3. Your clips will be detected automatically
-4. Click any processing action (Trim Silence, Subtitles, Sync Cameras, Track Subject)
-5. The panel uploads your clips, processes them, and shows live job status
-6. When a job is **Done** → click **Apply to timeline** to apply the edits directly
+2. Click **Refresh sequence** — your clips appear
+3. Click any action: **Trim Silence**, **Subtitles**, **Sync Cameras**, **Track Subject**
+4. Clips upload to the backend, get processed, status updates live
+5. When status shows **Done** → click **Apply to timeline**
 
----
-
-## How each action works on the timeline
-
-| Action | What happens in Premiere Pro |
+| Action | What it does in Premiere Pro |
 |---|---|
-| **Trim Silence** | Razor cuts at silence boundaries, deletes silent segments, closes gaps |
-| **Subtitles** | Imports SRT file and adds it as a captions track |
-| **Sync Cameras** | Adds markers at sync points for multi-cam alignment |
-| **Track Subject** | Imports the cropped/tracked video into the project bin |
+| Trim Silence | Razor cuts silence, deletes segments, closes gaps |
+| Subtitles | Writes SRT to temp folder, imports as captions |
+| Sync Cameras | Adds sequence markers at alignment points |
+| Track Subject | Downloads tracked MP4, imports into project bin |
 
 ---
 
-## For production (publishing to Creative Cloud Marketplace)
+## Updating the plugin
 
-1. Sign up at [Adobe Developer Console](https://developer.adobe.com)
-2. Create a UXP plugin entry and get your Plugin ID
-3. Update `manifest.json` with your official Plugin ID
-4. Submit for review via the Creative Cloud Marketplace
+Because it's symlinked, any code changes are instant — just **reload the panel**:
+- Close the panel → reopen via Window → Extensions → AutoCut Pro AI
+- Or: right-click inside the panel → Reload
 
 ---
 
 ## Troubleshooting
 
-**Panel doesn't appear in Window menu:**
-→ Make sure the plugin is loaded (green dot) in UXP Developer Tool
+**Extension doesn't appear in Window menu:**
+```bash
+# Make sure debug mode is on for your CSXS version
+defaults read com.adobe.CSXS.11 PlayerDebugMode   # should print 1
+```
+Also check the symlink: `ls ~/Library/Application\ Support/Adobe/CEP/extensions/`
 
-**"evalScript not available":**
-→ Ensure Premiere Pro 2022+ is running, not an older version
+**"EvalScript error" in the panel:**
+→ Make sure a sequence is open in Premiere Pro before clicking Refresh
 
 **Upload fails:**
 → Make sure the backend is running: `docker-compose up backend`
-→ Check that the file permissions allow UXP to read your media files
