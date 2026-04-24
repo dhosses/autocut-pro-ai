@@ -1,0 +1,36 @@
+{
+  "manifestVersion": 7,
+  "id": "com.autocutproai.panel",
+  "name": "AutoCut Pro AI",
+  "version": "1.0.0",
+  "host": [
+    {
+      "app": "PPRO",
+      "minVersion": "22.0"
+    }
+  ],
+  "entrypoints": [
+    {
+      "type": "panel",
+      "id": "mainPanel",
+      "label": {
+        "default": "AutoCut Pro AI"
+      },
+      "main": "index.html",
+      "minimumSize": { "width": 300, "height": 400 },
+      "preferredSize": { "width": 360, "height": 680 },
+      "maximumSize": { "width": 600, "height": 1000 }
+    }
+  ],
+  "requiredPermissions": {
+    "network": {
+      "domains": [
+        "http://localhost:4000",
+        "https://tzpmvnujmarfepfxvgiw.supabase.co",
+        "https://*.supabase.co"
+      ]
+    },
+    "localFileSystem": "request",
+    "clipboard": "readAndWrite"
+  }
+}

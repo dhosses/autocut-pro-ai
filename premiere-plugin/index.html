@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoCut Pro AI</title>
+  <link rel="stylesheet" href="styles/panel.css" />
+</head>
+<body>
+
+  <!-- Header (always visible) -->
+  <div class="header">
+    <span class="header-logo">✂️</span>
+    <span class="header-title">AutoCut Pro AI</span>
+    <span class="header-user hidden" id="headerUser"></span>
+  </div>
+
+  <!-- Auth Panel -->
+  <div id="authPanel" class="auth-panel">
+    <div class="auth-title">Sign in</div>
+    <div class="auth-subtitle">Connect your AutoCut Pro AI account</div>
+    <input type="email" id="authEmail" placeholder="Email" autocomplete="off" />
+    <input type="password" id="authPassword" placeholder="Password" />
+    <div id="authError" class="alert alert-error hidden"></div>
+    <button class="btn btn-primary" id="authSubmit">
+      <span id="authBtnText">Sign in</span>
+      <span class="spinner hidden" id="authSpinner"></span>
+    </button>
+  </div>
+
+  <!-- Main Panel -->
+  <div id="mainPanel" class="main-panel hidden">
+
+    <!-- Sequence -->
+    <div class="section">
+      <div class="section-title">Active Sequence</div>
+      <div id="seqCard" class="seq-card hidden">
+        <div class="seq-name" id="seqName"></div>
+        <div class="seq-meta" id="seqMeta"></div>
+      </div>
+      <div id="seqEmpty" class="seq-empty">No active sequence — open a sequence in Premiere Pro</div>
+      <button class="btn btn-secondary" id="refreshSeq" style="margin-top:8px">
+        ↻ Refresh sequence
+      </button>
+    </div>
+
+    <!-- Processing Actions -->
+    <div class="section">
+      <div class="section-title">Process</div>
+      <div class="actions-grid">
+        <button class="action-btn" id="actionSilence" disabled>
+          <span class="action-icon">✂️</span>
+          <span class="action-label">Trim Silence</span>
+        </button>
+        <button class="action-btn" id="actionSubtitles" disabled>
+          <span class="action-icon">💬</span>
+          <span class="action-label">Subtitles</span>
+        </button>
+        <button class="action-btn" id="actionSync" disabled>
+          <span class="action-icon">🔗</span>
+          <span class="action-label">Sync Cameras</span>
+        </button>
+        <button class="action-btn" id="actionTracking" disabled>
+          <span class="action-icon">👤</span>
+          <span class="action-label">Track Subject</span>
+        </button>
+      </div>
+      <div id="processError" class="alert alert-error hidden"></div>
+    </div>
+
+    <!-- Upload progress -->
+    <div class="section hidden" id="uploadSection">
+      <div class="section-title">Uploading clips</div>
+      <div id="uploadList" style="display:flex;flex-direction:column;gap:4px"></div>
+    </div>
+
+    <!-- Jobs -->
+    <div class="section">
+      <div class="section-title">Jobs</div>
+      <div id="jobList" class="job-list">
+        <span class="jobs-empty">No jobs yet — run a process above</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <span class="footer-link" id="openDashboard">Open dashboard ↗</span>
+      <span class="footer-link" id="signOut">Sign out</span>
+    </div>
+
+  </div>
+
+  <script src="src/auth.js"></script>
+  <script src="src/api.js"></script>
+  <script src="src/premiere.js"></script>
+  <script src="src/main.js"></script>
+</body>
+</html>
