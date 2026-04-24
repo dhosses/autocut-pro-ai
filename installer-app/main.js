@@ -106,8 +106,8 @@ ipcMain.handle("install", async (event) => {
 
     const dest = path.join(extDir, "com.autocutproai.panel");
 
-    // Remove old install
-    if (fs.existsSync(dest) || fs.lstatSync(dest).isSymbolicLink?.()) {
+    // Remove old install (existsSync handles symlinks and dirs)
+    if (fs.existsSync(dest)) {
       fs.rmSync(dest, { recursive: true, force: true });
     }
 

@@ -12,6 +12,18 @@ document.getElementById("btnMinimize").addEventListener("click", () => window.ap
 document.getElementById("btnInstall").addEventListener("click", startInstall);
 document.getElementById("btnRetry").addEventListener("click", startInstall);
 document.getElementById("btnQuit").addEventListener("click", () => window.api.closeWindow());
+document.getElementById("btnCopyError").addEventListener("click", () => {
+  const msg = document.getElementById("errorMessage").textContent;
+  navigator.clipboard.writeText(msg).then(() => {
+    const btn = document.getElementById("btnCopyError");
+    btn.textContent = "✓ Copied";
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.textContent = "Copy Error";
+      btn.classList.remove("copied");
+    }, 2000);
+  });
+});
 document.getElementById("btnDone").addEventListener("click", () => window.api.closeWindow());
 document.getElementById("btnOpenPremiere").addEventListener("click", () => {
   window.api.openPremiere();

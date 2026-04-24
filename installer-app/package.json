@@ -38,12 +38,10 @@
     "mac": {
       "category": "public.app-category.video",
       "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }],
-      "icon": "assets/icon.icns",
       "darkModeSupport": true
     },
     "dmg": {
       "title": "AutoCut Pro AI Installer",
-      "background": "assets/dmg-background.png",
       "window": { "width": 540, "height": 380 }
     }
   }

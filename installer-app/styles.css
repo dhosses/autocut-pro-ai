@@ -312,6 +312,25 @@ html, body {
   box-shadow: 0 4px 24px rgba(239,68,68,0.4);
 }
 .error-title   { font-size: 22px; font-weight: 700; }
+.btn-copy {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--surface2);
+  color: var(--text-muted);
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn-copy:hover { color: var(--text); border-color: #555; background: var(--border); }
+.btn-copy.copied { color: var(--success); border-color: var(--success); }
+
 .error-message {
   font-size: 12px;
   color: var(--text-muted);
