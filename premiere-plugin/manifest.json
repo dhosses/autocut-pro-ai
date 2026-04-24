@@ -1,5 +1,5 @@
 {
-  "manifestVersion": 7,
+  "manifestVersion": 5,
   "id": "com.autocutproai.panel",
   "name": "AutoCut Pro AI",
   "version": "1.0.0",
@@ -30,7 +30,6 @@
         "https://*.supabase.co"
       ]
     },
-    "localFileSystem": "request",
-    "clipboard": "readAndWrite"
+    "localFileSystem": "plugin"
   }
 }
