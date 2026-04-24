@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: autocut
+      POSTGRES_PASSWORD: autocut
+      POSTGRES_DB: autocut
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U autocut"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://autocut:autocut@postgres:5432/autocut
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  python:
+    build:
+      context: ./python-services
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://autocut:autocut@postgres:5432/autocut
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./python-services:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      - API_URL=http://backend:4000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+volumes:
+  postgres_data:
