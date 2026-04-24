@@ -32,13 +32,14 @@ function DownloadContent() {
       .eq("user_id", sessionData.session.user.id)
       .single();
 
-    return { session: sessionData.session, tier: sub?.tier };
+    const tier = sub?.tier as string | undefined;
+    return { session: sessionData.session, tier };
   }
 
   useEffect(() => {
     checkSubscription().then((result) => {
       if (!result) return;
-      if (result.tier === "pro") {
+      if (result.tier === "pro" || result.tier === "basic") {
         setState("subscribed");
       } else if (justSubscribed) {
         setState("pending");
@@ -58,7 +59,7 @@ function DownloadContent() {
     }
     const timer = setTimeout(async () => {
       const result = await checkSubscription();
-      if (result?.tier === "pro") {
+      if (result?.tier === "pro" || result?.tier === "basic") {
         setState("subscribed");
       } else {
         setPollCount((c) => c + 1);

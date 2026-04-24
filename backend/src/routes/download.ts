@@ -8,19 +8,19 @@ const router = Router();
 
 const DIST_DIR = path.resolve(__dirname, "../../../installer-app/dist");
 
-async function checkProSubscription(userId: string): Promise<boolean> {
+async function checkPaidSubscription(userId: string): Promise<boolean> {
   const { data } = await supabase
     .from("subscriptions")
     .select("tier")
     .eq("user_id", userId)
     .single();
-  return data?.tier === "pro";
+  return data?.tier === "basic" || data?.tier === "pro";
 }
 
 function serveInstaller(filename: string, downloadName: string) {
   return async (req: AuthRequest, res: any) => {
-    const isPro = await checkProSubscription(req.userId!);
-    if (!isPro) {
+    const isPaid = await checkPaidSubscription(req.userId!);
+    if (!isPaid) {
       res.status(403).json({ error: "Active subscription required" });
       return;
     }

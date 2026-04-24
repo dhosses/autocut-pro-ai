@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
 interface Project {
   id: string;
   name: string;
@@ -11,9 +13,9 @@ interface Project {
 }
 
 interface Subscription {
-  tier: "free" | "pro";
+  tier: "free" | "basic" | "pro";
   minutes_used: number;
-  minutes_limit: number;
+  minutes_limit: number | null;
 }
 
 export default function DashboardPage() {
@@ -53,10 +55,25 @@ export default function DashboardPage() {
     router.push("/");
   }
 
+  async function manageBilling() {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+    const res = await fetch(`${API_URL}/subscription/portal`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${data.session.access_token}` },
+    });
+    const json = await res.json();
+    if (json.url) window.location.href = json.url;
+    else alert("Could not open billing portal. Please try again.");
+  }
+
   if (loading) return <div className="min-h-screen flex items-center justify-center">Loading…</div>;
 
-  const usePct = sub ? Math.min(100, (sub.minutes_used / sub.minutes_limit) * 100) : 0;
-  const overQuota = sub?.tier === "free" && sub.minutes_used >= sub.minutes_limit;
+  const isUnlimited = sub?.tier === "pro" || sub?.minutes_limit === null;
+  const usePct = sub && !isUnlimited && sub.minutes_limit
+    ? Math.min(100, (sub.minutes_used / sub.minutes_limit) * 100)
+    : 0;
+  const overQuota = sub?.tier === "free" && sub.minutes_limit !== null && sub.minutes_used >= (sub.minutes_limit ?? 30);
 
   return (
     <main className="min-h-screen p-6 max-w-5xl mx-auto space-y-8">
@@ -67,23 +84,40 @@ export default function DashboardPage() {
 
       {sub && (
         <div className="bg-gray-900 rounded-xl p-4 space-y-2">
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between items-center text-sm">
             <span className="text-gray-400">
-              {sub.tier === "pro" ? "Pro plan — unlimited" : `${sub.minutes_used} / ${sub.minutes_limit} min used`}
+              {isUnlimited
+                ? `${sub.tier === "pro" ? "Pro" : "Basic"} plan — unlimited`
+                : `${sub.minutes_used} / ${sub.minutes_limit} min used`}
             </span>
-            <span className={`font-medium capitalize ${sub.tier === "pro" ? "text-brand-500" : "text-gray-300"}`}>
-              {sub.tier}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className={`font-medium capitalize ${sub.tier !== "free" ? "text-sky-400" : "text-gray-300"}`}>
+                {sub.tier}
+              </span>
+              {sub.tier !== "free" && (
+                <button
+                  onClick={manageBilling}
+                  className="text-xs text-gray-500 hover:text-gray-300 underline transition-colors"
+                >
+                  Manage billing
+                </button>
+              )}
+            </div>
           </div>
-          {sub.tier === "free" && (
+          {!isUnlimited && (
             <div className="w-full bg-gray-800 rounded-full h-2">
-              <div className="bg-brand-500 h-2 rounded-full transition-all" style={{ width: `${usePct}%` }} />
+              <div className="bg-sky-500 h-2 rounded-full transition-all" style={{ width: `${usePct}%` }} />
             </div>
           )}
           {overQuota && (
             <div className="text-amber-400 text-sm">
               Free quota reached.{" "}
-              <a href="#upgrade" className="underline">Upgrade to Pro</a> for unlimited processing.
+              <Link href="/pricing" className="underline">Upgrade</Link> for more processing.
+            </div>
+          )}
+          {sub.tier === "free" && !overQuota && (
+            <div className="text-gray-500 text-xs">
+              <Link href="/pricing" className="text-sky-500 hover:text-sky-400">Upgrade to Basic or Pro</Link> to download the Premiere Pro installer.
             </div>
           )}
         </div>
