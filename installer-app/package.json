@@ -1,0 +1,50 @@
+{
+  "name": "autocut-pro-ai-installer",
+  "productName": "AutoCut Pro AI",
+  "version": "1.0.0",
+  "description": "Installer for AutoCut Pro AI Premiere Pro extension",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --mac --publish never"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.0"
+  },
+  "build": {
+    "appId": "com.autocutproai.installer",
+    "productName": "AutoCut Pro AI",
+    "copyright": "AutoCut Pro AI",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "styles.css",
+      "renderer.js",
+      "assets/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../premiere-plugin",
+        "to": "premiere-plugin",
+        "filter": ["**/*", "!node_modules/**"]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.video",
+      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }],
+      "icon": "assets/icon.icns",
+      "darkModeSupport": true
+    },
+    "dmg": {
+      "title": "AutoCut Pro AI Installer",
+      "background": "assets/dmg-background.png",
+      "window": { "width": 540, "height": 380 }
+    }
+  }
+}

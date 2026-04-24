@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"/>
+  <title>AutoCut Pro AI</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+  <!-- Custom title bar -->
+  <div class="titlebar" id="titlebar">
+    <div class="titlebar-controls">
+      <button class="traffic-light close" id="btnClose" title="Close"></button>
+      <button class="traffic-light minimize" id="btnMinimize" title="Minimize"></button>
+      <div class="traffic-light disabled"></div>
+    </div>
+  </div>
+
+  <!-- Screen: Welcome -->
+  <div class="screen" id="screenWelcome">
+    <div class="hero">
+      <div class="app-icon">✂️</div>
+      <h1 class="app-name">AutoCut <span class="accent">Pro AI</span></h1>
+      <p class="app-tagline">AI-powered video editing for Premiere Pro</p>
+    </div>
+
+    <div class="feature-list">
+      <div class="feature"><span class="feature-icon">✂️</span><span>Auto silence trimming</span></div>
+      <div class="feature"><span class="feature-icon">💬</span><span>AI subtitle generation</span></div>
+      <div class="feature"><span class="feature-icon">🎙️</span><span>Multi-camera sync</span></div>
+      <div class="feature"><span class="feature-icon">👤</span><span>Subject tracking</span></div>
+    </div>
+
+    <div class="install-target">
+      <div class="install-target-icon">🎬</div>
+      <div>
+        <div class="install-target-name">Adobe Premiere Pro</div>
+        <div class="install-target-path">~/Library/Application Support/Adobe/CEP/extensions</div>
+      </div>
+    </div>
+
+    <button class="btn-install" id="btnInstall">Install Extension</button>
+    <p class="legal">Installs a panel extension into Premiere Pro on this Mac.</p>
+  </div>
+
+  <!-- Screen: Installing -->
+  <div class="screen hidden" id="screenInstalling">
+    <div class="installing-header">
+      <div class="app-icon small">✂️</div>
+      <h2>Installing…</h2>
+    </div>
+
+    <div class="steps" id="stepList">
+      <div class="step" id="step-1" data-step="1">
+        <div class="step-dot"></div>
+        <div class="step-content">
+          <div class="step-label">Finding plugin files</div>
+          <div class="step-sub"></div>
+        </div>
+      </div>
+      <div class="step" id="step-2" data-step="2">
+        <div class="step-dot"></div>
+        <div class="step-content">
+          <div class="step-label">Downloading Adobe CSInterface</div>
+          <div class="step-sub"></div>
+        </div>
+      </div>
+      <div class="step" id="step-3" data-step="3">
+        <div class="step-dot"></div>
+        <div class="step-content">
+          <div class="step-label">Configuring Premiere Pro</div>
+          <div class="step-sub"></div>
+        </div>
+      </div>
+      <div class="step" id="step-4" data-step="4">
+        <div class="step-dot"></div>
+        <div class="step-content">
+          <div class="step-label">Installing extension</div>
+          <div class="step-sub"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+  </div>
+
+  <!-- Screen: Success -->
+  <div class="screen hidden" id="screenSuccess">
+    <div class="success-icon">✓</div>
+    <h2 class="success-title">Extension Installed</h2>
+    <p class="success-sub">AutoCut Pro AI is ready in Premiere Pro.</p>
+
+    <div class="success-steps">
+      <div class="success-step">
+        <span class="success-step-num">1</span>
+        <span>Open (or restart) Adobe Premiere Pro</span>
+      </div>
+      <div class="success-step">
+        <span class="success-step-num">2</span>
+        <span>Go to <strong>Window → Extensions → AutoCut Pro AI</strong></span>
+      </div>
+      <div class="success-step">
+        <span class="success-step-num">3</span>
+        <span>Sign in and open a sequence to start editing</span>
+      </div>
+    </div>
+
+    <button class="btn-install" id="btnOpenPremiere">Open Premiere Pro</button>
+    <button class="btn-secondary" id="btnDone">Done</button>
+  </div>
+
+  <!-- Screen: Error -->
+  <div class="screen hidden" id="screenError">
+    <div class="error-icon">✗</div>
+    <h2 class="error-title">Installation Failed</h2>
+    <p class="error-message" id="errorMessage"></p>
+    <button class="btn-install" id="btnRetry">Try Again</button>
+    <button class="btn-secondary" id="btnQuit">Quit</button>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
