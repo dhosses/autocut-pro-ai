@@ -43,6 +43,7 @@ services:
     volumes:
       - ./backend:/app/backend
       - ./packages:/app/packages
+      - ./installer-app/dist:/app/installer-app/dist
 
   python:
     build:

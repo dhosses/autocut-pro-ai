@@ -8,22 +8,19 @@ const router = Router();
 
 const DIST_DIR = path.resolve(__dirname, "../../../installer-app/dist");
 
-async function checkPaidSubscription(userId: string): Promise<boolean> {
-  const { data } = await supabase
-    .from("subscriptions")
-    .select("tier")
-    .eq("user_id", userId)
-    .single();
-  return data?.tier === "basic" || data?.tier === "pro";
-}
+// async function checkPaidSubscription(userId: string): Promise<boolean> {
+//   const { data } = await supabase
+//     .from("subscriptions")
+//     .select("tier")
+//     .eq("user_id", userId)
+//     .single();
+//   return data?.tier === "basic" || data?.tier === "pro";
+// }
 
 function serveInstaller(filename: string, downloadName: string) {
   return async (req: AuthRequest, res: any) => {
-    const isPaid = await checkPaidSubscription(req.userId!);
-    if (!isPaid) {
-      res.status(403).json({ error: "Active subscription required" });
-      return;
-    }
+    // const isPaid = await checkPaidSubscription(req.userId!);
+    // if (!isPaid) { res.status(403).json({ error: "Active subscription required" }); return; }
 
     const filePath = path.join(DIST_DIR, filename);
     if (!fs.existsSync(filePath)) {
@@ -35,6 +32,17 @@ function serveInstaller(filename: string, downloadName: string) {
   };
 }
 
+router.get("/mac-arm64", requireAuth, serveInstaller(
+  "AutoCut Pro AI-1.0.0-arm64.dmg",
+  "AutoCut Pro AI Installer (Apple Silicon).dmg"
+));
+
+router.get("/mac-intel", requireAuth, serveInstaller(
+  "AutoCut Pro AI-1.0.0.dmg",
+  "AutoCut Pro AI Installer (Intel).dmg"
+));
+
+// Legacy route — defaults to Apple Silicon
 router.get("/mac", requireAuth, serveInstaller(
   "AutoCut Pro AI-1.0.0-arm64.dmg",
   "AutoCut Pro AI Installer.dmg"

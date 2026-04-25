@@ -51,10 +51,8 @@ function PlanButton({ tier, billing, label }: PlanButtonProps) {
       }
 
       const priceId = PRICES[tier][billing];
-      if (!priceId) {
-        alert("Payment not configured yet — add Stripe price IDs to your .env");
-        return;
-      }
+      // Bypass Stripe checkout when not configured — go straight to download
+      if (!priceId) { router.push("/download"); return; }
 
       const res = await fetch(`${API_URL}/subscription/checkout`, {
         method: "POST",

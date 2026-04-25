@@ -6,17 +6,22 @@ import { FEATURE_FLAGS, type Tier } from "../config/features";
 
 const router = Router();
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-04-22.dahlia" as any,
-});
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY not configured");
+  return new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2026-04-22.dahlia" as any });
+}
 
 // POST /subscription/checkout — create Stripe Checkout session
 router.post("/checkout", requireAuth, async (req: AuthRequest, res: any) => {
   const { priceId } = req.body as { priceId: string };
-  if (!priceId) {
-    res.status(400).json({ error: "priceId is required" });
+  // if (!priceId) { res.status(400).json({ error: "priceId is required" }); return; }
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    res.status(503).json({ error: "Stripe not configured" });
     return;
   }
+
+  const stripe = getStripe();
 
   const { data: userData } = await supabase.auth.getUser(
     req.headers.authorization!.replace("Bearer ", "")
@@ -59,6 +64,13 @@ router.post("/checkout", requireAuth, async (req: AuthRequest, res: any) => {
 
 // POST /subscription/portal — create Stripe Customer Portal session
 router.post("/portal", requireAuth, async (req: AuthRequest, res: any) => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    res.status(503).json({ error: "Stripe not configured" });
+    return;
+  }
+
+  const stripe = getStripe();
+
   const { data: sub } = await supabase
     .from("subscriptions")
     .select("stripe_customer_id")

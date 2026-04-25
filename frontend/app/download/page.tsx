@@ -16,59 +16,26 @@ function DownloadContent() {
   const justSubscribed = searchParams.get("subscribed") === "1";
 
   const [state, setState] = useState<State>("loading");
-  const [downloading, setDownloading] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<"mac-arm64" | "mac-intel" | "windows" | null>(null);
   const [pollCount, setPollCount] = useState(0);
 
-  async function checkSubscription() {
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      router.push("/login?next=/download");
-      return null;
-    }
-
-    const { data: sub } = await supabase
-      .from("subscriptions")
-      .select("tier")
-      .eq("user_id", sessionData.session.user.id)
-      .single();
-
-    const tier = sub?.tier as string | undefined;
-    return { session: sessionData.session, tier };
-  }
-
   useEffect(() => {
-    checkSubscription().then((result) => {
-      if (!result) return;
-      if (result.tier === "pro" || result.tier === "basic") {
-        setState("subscribed");
-      } else if (justSubscribed) {
-        setState("pending");
-      } else {
-        router.push("/pricing");
-      }
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) { router.push("/login?next=/download"); return; }
+      setState("subscribed");
+
+      // Subscription gate — uncomment to re-enable
+      // supabase.from("subscriptions").select("tier").eq("user_id", data.session.user.id).single().then(({ data: sub }) => {
+      //   const tier = sub?.tier as string | undefined;
+      //   if (tier === "pro" || tier === "basic") { setState("subscribed"); }
+      //   else if (justSubscribed) { setState("pending"); }
+      //   else { router.push("/pricing"); }
+      // });
     });
   }, []);
 
-  // Poll until tier flips to pro
-  useEffect(() => {
-    if (state !== "pending") return;
-    if (pollCount >= MAX_POLLS) {
-      // Give up polling, send back to pricing
-      router.push("/pricing?payment_pending=1");
-      return;
-    }
-    const timer = setTimeout(async () => {
-      const result = await checkSubscription();
-      if (result?.tier === "pro" || result?.tier === "basic") {
-        setState("subscribed");
-      } else {
-        setPollCount((c) => c + 1);
-      }
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [state, pollCount]);
 
-  async function handleDownload(platform: "mac" | "windows") {
+  async function handleDownload(platform: "mac-arm64" | "mac-intel" | "windows") {
     setDownloading(platform);
     try {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -83,7 +50,7 @@ function DownloadContent() {
         const err = await res.json().catch(() => ({}));
         if (res.status === 403) { router.push("/pricing"); return; }
         if (res.status === 503) {
-          alert("The Windows installer is not yet available. Check back soon.");
+          alert("This installer is not yet available. Check back soon.");
           return;
         }
         alert(err.error || "Download failed. Please try again.");
@@ -94,7 +61,11 @@ function DownloadContent() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = platform === "mac" ? "AutoCut Pro AI Installer.dmg" : "AutoCut Pro AI Installer.exe";
+      a.download = platform === "mac-arm64"
+        ? "AutoCut Pro AI Installer (Apple Silicon).dmg"
+        : platform === "mac-intel"
+        ? "AutoCut Pro AI Installer (Intel).dmg"
+        : "AutoCut Pro AI Installer.exe";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -135,20 +106,39 @@ function DownloadContent() {
       </div>
 
       <div className="space-y-3">
+        <p className="text-xs text-gray-600 uppercase tracking-widest font-medium">macOS</p>
+
         <button
-          onClick={() => handleDownload("mac")}
+          onClick={() => handleDownload("mac-arm64")}
           disabled={!!downloading}
           className="w-full flex items-center gap-4 p-5 bg-gray-900 hover:bg-gray-800 border border-white/10 rounded-xl transition-colors disabled:opacity-60 text-left group"
         >
           <span className="text-3xl">🍎</span>
           <div className="flex-1">
-            <div className="font-semibold">Download for macOS</div>
-            <div className="text-sm text-gray-500">Apple Silicon &amp; Intel · .dmg</div>
+            <div className="font-semibold">Apple Silicon</div>
+            <div className="text-sm text-gray-500">M1 / M2 / M3 / M4 · .dmg</div>
           </div>
           <span className="text-sky-400 text-sm font-medium group-hover:text-sky-300 transition-colors">
-            {downloading === "mac" ? "Downloading…" : "Download →"}
+            {downloading === "mac-arm64" ? "Downloading…" : "Download →"}
           </span>
         </button>
+
+        <button
+          onClick={() => handleDownload("mac-intel")}
+          disabled={!!downloading}
+          className="w-full flex items-center gap-4 p-5 bg-gray-900 hover:bg-gray-800 border border-white/10 rounded-xl transition-colors disabled:opacity-60 text-left group"
+        >
+          <span className="text-3xl">🍎</span>
+          <div className="flex-1">
+            <div className="font-semibold">Intel Mac</div>
+            <div className="text-sm text-gray-500">Intel Core i5 / i7 / i9 · .dmg</div>
+          </div>
+          <span className="text-sky-400 text-sm font-medium group-hover:text-sky-300 transition-colors">
+            {downloading === "mac-intel" ? "Downloading…" : "Download →"}
+          </span>
+        </button>
+
+        <p className="text-xs text-gray-600 uppercase tracking-widest font-medium pt-2">Windows</p>
 
         <button
           onClick={() => handleDownload("windows")}
@@ -157,7 +147,7 @@ function DownloadContent() {
         >
           <span className="text-3xl">🪟</span>
           <div className="flex-1">
-            <div className="font-semibold">Download for Windows</div>
+            <div className="font-semibold">Windows</div>
             <div className="text-sm text-gray-500">Windows 10/11 x64 · .exe</div>
           </div>
           <span className="text-sky-400 text-sm font-medium group-hover:text-sky-300 transition-colors">

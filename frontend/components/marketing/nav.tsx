@@ -34,9 +34,9 @@ export default function Nav() {
 
         <div className="flex items-center gap-3">
           {user ? (
-            <Link href="/dashboard"
+            <Link href="/download"
               className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white text-sm font-medium rounded-lg transition-colors">
-              Dashboard →
+              Download →
             </Link>
           ) : (
             <>

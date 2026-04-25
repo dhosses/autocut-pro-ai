@@ -8,16 +8,30 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handle = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) { router.push("/dashboard"); return; }
-
+      // Exchange PKCE code if present
       const code = new URLSearchParams(window.location.search).get("code");
       if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (!error) { router.push("/dashboard"); return; }
+        await supabase.auth.exchangeCodeForSession(code);
       }
 
-      router.push("/login?error=auth_failed");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push("/login?error=auth_failed");
+        return;
+      }
+
+      // Send to download if already subscribed, otherwise pricing
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("tier")
+        .eq("user_id", session.user.id)
+        .single();
+
+      if (sub?.tier === "basic" || sub?.tier === "pro") {
+        router.push("/download");
+      } else {
+        router.push("/pricing");
+      }
     };
     handle();
   }, [router]);
